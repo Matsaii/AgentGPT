@@ -1,0 +1,221 @@
+- conInventar:
+    Control: GroupContainer@1.3.0
+    Variant: ManualLayout
+    Properties:
+      X: =0
+      Y: =0
+      Width: =Parent.Width
+      Height: =Parent.Height
+      Fill: =fxHintergrund
+    Children:
+      - recKopf:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =72
+            Fill: =fxPrimaer
+      - lblKopfInventar:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Inventar"
+            X: =20
+            Y: =0
+            Width: =300
+            Height: =72
+            Size: =22
+            FontWeight: =FontWeight.Semibold
+            Color: =Color.White
+      - icoAktualisieren:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Reload
+            X: =Parent.Width - 120
+            Y: =16
+            Width: =40
+            Height: =40
+            Color: =Color.White
+            Tooltip: ="Aktualisieren"
+            OnSelect: =Refresh(Inventar)
+      - icoNeu:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Add
+            X: =Parent.Width - 64
+            Y: =16
+            Width: =40
+            Height: =40
+            Color: =Color.White
+            Tooltip: ="Neuer Artikel"
+            OnSelect: |-
+              =Set(varNeu, true);
+              Set(varArtikel, Blank());
+              Navigate(scrArtikel, ScreenTransition.Cover)
+      - txtSuche:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Suche nach Name oder Artikelnummer"
+            X: =20
+            Y: =88
+            Width: =Max(200, Parent.Width - 40 - 220 - 20)
+            Height: =44
+            DelayOutput: =true
+      - drpKategorie:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            Items: |-
+              =Ungroup(Table({Liste: ["Alle"]}, {Liste: fxKategorien}), Liste)
+            Default: ="Alle"
+            X: =Parent.Width - 240
+            Y: =88
+            Width: =220
+            Height: =44
+      - chkNiedrig:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            Text: ="Nur Artikel unter Mindestbestand"
+            Default: =false
+            X: =20
+            Y: =142
+            Width: =340
+            Height: =36
+      - lblAnzahl:
+          Control: Label@2.5.1
+          Properties:
+            Text: =CountRows(galInventar.AllItems) & " Artikel"
+            Align: =Align.Right
+            X: =Parent.Width - 240
+            Y: =142
+            Width: =220
+            Height: =36
+            Color: =ColorValue("#555555")
+      - galInventar:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =With(
+                  {
+                      basis: SortByColumns(
+                          Filter(
+                              Inventar,
+                              IsBlank(txtSuche.Text) || StartsWith(Title, txtSuche.Text) || StartsWith(Artikelnummer, txtSuche.Text),
+                              drpKategorie.Selected.Value = "Alle" || Kategorie.Value = drpKategorie.Selected.Value
+                          ),
+                          "Title",
+                          SortOrder.Ascending
+                      )
+                  },
+                  If(chkNiedrig.Value, Filter(basis, Menge < Mindestbestand), basis)
+              )
+            X: =20
+            Y: =188
+            Width: =Parent.Width - 40
+            Height: =Parent.Height - 188 - 20
+            TemplateSize: =84
+            TemplatePadding: =0
+            Fill: =Color.White
+            ShowScrollbar: =true
+            OnSelect: |-
+              =Set(varNeu, false);
+              Set(varArtikel, ThisItem);
+              Navigate(scrArtikel, ScreenTransition.Cover)
+          Children:
+            - recStatus:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =6
+                  Height: =Parent.TemplateHeight
+                  Fill: =If(ThisItem.Menge < ThisItem.Mindestbestand, fxRot, fxGruen)
+            - lblName:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  X: =20
+                  Y: =10
+                  Width: =Parent.TemplateWidth - 20 - 260
+                  Height: =32
+                  Size: =15
+                  FontWeight: =FontWeight.Semibold
+            - lblInfo:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Artikelnummer & "  ·  " & ThisItem.Kategorie.Value & "  ·  " & ThisItem.Lagerort
+                  X: =20
+                  Y: =42
+                  Width: =Parent.TemplateWidth - 20 - 260
+                  Height: =28
+                  Size: =12
+                  Color: =ColorValue("#666666")
+            - btnMinus:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="−"
+                  X: =Parent.TemplateWidth - 240
+                  Y: =20
+                  Width: =44
+                  Height: =44
+                  Size: =18
+                  Fill: =ColorValue("#E0E6EE")
+                  Color: =fxPrimaer
+                  DisplayMode: =If(ThisItem.Menge > 0, DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: |-
+                    =Patch(Inventar, ThisItem, {Menge: Max(0, ThisItem.Menge - 1)})
+            - lblMenge:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Menge
+                  Align: =Align.Center
+                  X: =Parent.TemplateWidth - 190
+                  Y: =10
+                  Width: =80
+                  Height: =40
+                  Size: =20
+                  FontWeight: =FontWeight.Bold
+                  Color: =If(ThisItem.Menge < ThisItem.Mindestbestand, fxRot, fxGruen)
+            - lblMindest:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="min. " & ThisItem.Mindestbestand
+                  Align: =Align.Center
+                  X: =Parent.TemplateWidth - 190
+                  Y: =48
+                  Width: =80
+                  Height: =24
+                  Size: =10
+                  Color: =ColorValue("#888888")
+            - btnPlus:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="+"
+                  X: =Parent.TemplateWidth - 104
+                  Y: =20
+                  Width: =44
+                  Height: =44
+                  Size: =18
+                  Fill: =fxPrimaer
+                  Color: =Color.White
+                  OnSelect: |-
+                    =Patch(Inventar, ThisItem, {Menge: ThisItem.Menge + 1})
+            - icoWeiter:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  Icon: =Icon.ChevronRight
+                  X: =Parent.TemplateWidth - 48
+                  Y: =26
+                  Width: =32
+                  Height: =32
+                  Color: =ColorValue("#999999")
+                  OnSelect: =Select(Parent)
+            - recTrenner:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =0
+                  Y: =Parent.TemplateHeight - 1
+                  Width: =Parent.TemplateWidth
+                  Height: =1
+                  Fill: =ColorValue("#E5E5E5")

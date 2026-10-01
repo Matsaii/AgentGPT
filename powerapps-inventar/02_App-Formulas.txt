@@ -1,0 +1,8 @@
+// In Power Apps Studio: Strukturansicht -> "App" auswählen -> Eigenschaft "Formulas"
+// und den folgenden Inhalt einfügen.
+
+fxKategorien = ["Werkzeug", "Material", "Elektronik", "Büro", "Sonstiges"];
+fxPrimaer = ColorValue("#1F4E79");
+fxHintergrund = ColorValue("#F3F5F8");
+fxRot = ColorValue("#C62828");
+fxGruen = ColorValue("#2E7D32");
